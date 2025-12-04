@@ -38,8 +38,8 @@ A comprehensive inventory management system for spare parts companies, built wit
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/draletilouis/inventory-app-spareparts-company.git
-cd inventory-app-spareparts-company
+git clone https://github.com/draletilouis/garage-inventory-system.git
+cd garage-inventory-system
 ```
 
 2. Install dependencies:
