@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#10b981">
+    <title>HR Family Spare Parts - Inventory Management</title>
+    <meta name="description" content="Spare parts inventory management system for HR Family">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="loginScreen" class="screen active">
+        <div class="login-container">
+            <div class="login-logo">
+                <img src="logo.png" alt="HR Family Spare Parts Logo">
+            </div>
+            <div class="login-form">
+                <h2>HR Family Spare Parts</h2>
+                <p class="login-subtitle">Inventory Management System</p>
+                <input type="text" id="username" placeholder="Username" autocomplete="username">
+                <input type="password" id="password" placeholder="Password" autocomplete="current-password">
+                <button>Login</button>
+                <div id="loginError" class="error-message"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Application -->
+    <div id="mainApp" class="screen">
+        <!-- Mobile Menu Button -->
+        <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle menu">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+
+        <!-- Mobile Overlay -->
+        <div class="mobile-overlay" id="mobileOverlay"></div>
+
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar" id="sidebar">
+            <div class="nav-brand">
+                <img src="logo.png" alt="HR Family Spare Parts Logo" class="sidebar-logo">
+            </div>
+            <nav class="nav-menu">
+                <button class="nav-btn active" onclick="showTab('dashboard')">📊 Dashboard</button>
+                <button class="nav-btn" onclick="showTab('sales')">💰 Sales</button>
+                <button class="nav-btn admin-only" onclick="showTab('inventory')">📦 Inventory</button>
+                <button class="nav-btn" onclick="showTab('returns')">↩️ Returns</button>
+                <button class="nav-btn admin-only" onclick="showTab('returnedItems')">📥 Returned Items</button>
+                <button class="nav-btn" onclick="showTab('customers')">👥 Customers</button>
+                <button class="nav-btn admin-only" onclick="showTab('suppliers')">🏢 Suppliers</button>
+                <button class="nav-btn admin-only" onclick="showTab('users')">👤 Users</button>
+            </nav>
+            <div class="nav-user">
+                <span id="currentUser"></span>
+                <button onclick="logout()">Logout</button>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <div class="main-content">
+
+        <!-- Dashboard Tab -->
+        <div id="dashboard" class="tab-content active">
+            <div class="tab-header">
+                <h2>Dashboard Overview</h2>
+                <button class="btn-primary" onclick="showReportsModal()">📊 Generate Reports</button>
+            </div>
+            <div class="dashboard-grid-custom">
+                <!-- Top Row: 2 large items -->
+                <div class="metric-card metric-card-large admin-only">
+                    <h3>Total Inventory Value</h3>
+                    <div class="metric-value" id="totalValue">0</div>
+                </div>
+                <div class="metric-card metric-card-large admin-only clickable"
+                     role="button"
+                     tabindex="0"
+                     onclick="showProfitsBreakdown()"
+                     onkeydown="if(event.key==='Enter'||event.key===' '){showProfitsBreakdown();event.preventDefault();}"
+                     style="cursor: pointer;"
+                     aria-label="View today's profits breakdown">
+                    <h3>Today's Profits</h3>
+                    <div class="metric-value" id="totalProfits">0</div>
+                </div>
+
+                <!-- Bottom Row: 3 smaller items -->
+                <div class="metric-card metric-card-small">
+                    <h3>Today's Sales</h3>
+                    <div class="metric-value" id="todaySales">0</div>
+                </div>
+                <div class="metric-card metric-card-small alert">
+                    <h3>Low Stock Alerts</h3>
+                    <div class="metric-value" id="lowStock">0</div>
+                </div>
+                <div class="metric-card metric-card-small">
+                    <h3>Pending Returns</h3>
+                    <div class="metric-value" id="pendingReturns">0</div>
+                </div>
+            </div>
+
+            <div class="dashboard-section">
+                <h3>Low Stock Items</h3>
+                <div id="lowStockList" class="alert-list"></div>
+            </div>
+
+            <div class="dashboard-section">
+                <h3>Recent Sales (Today)</h3>
+                <div id="recentSalesList" class="recent-list"></div>
+            </div>
+
+            <!-- Profits Breakdown Section (Hidden by default, shown on click) -->
+            <div id="profitsBreakdownSection" class="dashboard-section admin-only" style="display: none;">
+                <div class="tab-header">
+                    <h3>💰 Profits Analysis</h3>
+                    <button class="btn-secondary" onclick="hideProfitsBreakdown()">Close</button>
+                </div>
+
+                <!-- Date Range Filter -->
+                <div class="filters" style="margin-bottom: 20px;">
+                    <label>From: <input type="date" id="profitStartDate"></label>
+                    <label>To: <input type="date" id="profitEndDate"></label>
+                    <button class="btn-primary" onclick="loadProfitsData()">Apply Filter</button>
+                    <button class="btn-secondary" onclick="clearProfitFilters()">Clear</button>
+                </div>
+
+                <!-- Profit Metrics Grid: 2 cards on top, 3 below -->
+                <div class="profit-metrics-container" style="margin-bottom: 30px;">
+                    <!-- Top Row: 2 Large Cards -->
+                    <div class="profit-metrics-top">
+                        <div class="metric-card">
+                            <h3>Total Revenue</h3>
+                            <div class="metric-value" id="profitTotalRevenue">0</div>
+                        </div>
+                        <div class="metric-card">
+                            <h3 style="color: #27ae60;">Net Profit</h3>
+                            <div class="metric-value" style="color: #27ae60;" id="profitNetProfit">0</div>
+                        </div>
+                    </div>
+
+                    <!-- Bottom Row: 3 Cards -->
+                    <div class="profit-metrics-bottom">
+                        <div class="metric-card">
+                            <h3>Profit Margin</h3>
+                            <div class="metric-value" id="profitMargin">0%</div>
+                        </div>
+                        <div class="metric-card">
+                            <h3>Total Sales</h3>
+                            <div class="metric-value" id="profitTotalSales">0</div>
+                        </div>
+                        <div class="metric-card">
+                            <h3>Avg Order Value</h3>
+                            <div class="metric-value" id="profitAvgOrder">0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Top Selling Items -->
+                <div class="dashboard-section">
+                    <h3>Top Selling Items by Profit</h3>
+                    <div class="table-container">
+                        <table id="topSellingTable">
+                            <thead>
+                                <tr>
+                                    <th>Rank</th>
+                                    <th>SKU</th>
+                                    <th>Product Name</th>
+                                    <th>Quantity Sold</th>
+                                    <th>Revenue</th>
+                                    <th>Profit</th>
+                                </tr>
+                            </thead>
+                            <tbody id="topSellingBody">
+                                <tr><td colspan="6">Loading...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Inventory Tab -->
+        <div id="inventory" class="tab-content">
+            <div class="tab-header">
+                <h2>Inventory Management</h2>
+                <button class="btn-primary" onclick="showAddInventoryModal()">+ Add New Item</button>
+            </div>
+            <div class="search-bar">
+                <input type="text" id="inventorySearch" placeholder="Search inventory..." onkeyup="filterInventory()">
+            </div>
+            <div class="table-container">
+                <table id="inventoryTable">
+                    <thead>
+                        <tr>
+                            <th class="sortable" role="button" tabindex="0" onclick="sortInventory('sku', 'string')" onkeydown="if(event.key==='Enter'||event.key===' '){sortInventory('sku', 'string');event.preventDefault();}" aria-label="Sort by SKU">SKU ⇅</th>
+                            <th class="sortable" role="button" tabindex="0" onclick="sortInventory('name', 'string')" onkeydown="if(event.key==='Enter'||event.key===' '){sortInventory('name', 'string');event.preventDefault();}" aria-label="Sort by Product Name">Product Name ⇅</th>
+                            <th class="sortable" role="button" tabindex="0" onclick="sortInventory('category', 'string')" onkeydown="if(event.key==='Enter'||event.key===' '){sortInventory('category', 'string');event.preventDefault();}" aria-label="Sort by Category">Category ⇅</th>
+                            <th class="sortable" role="button" tabindex="0" onclick="sortInventory('quantity', 'number')" onkeydown="if(event.key==='Enter'||event.key===' '){sortInventory('quantity', 'number');event.preventDefault();}" aria-label="Sort by Quantity">Quantity ⇅</th>
+                            <th class="sortable" role="button" tabindex="0" onclick="sortInventory('price', 'number')" onkeydown="if(event.key==='Enter'||event.key===' '){sortInventory('price', 'number');event.preventDefault();}" aria-label="Sort by Unit Price">Unit Price ⇅</th>
+                            <th class="sortable" role="button" tabindex="0" onclick="sortInventory('totalValue', 'number')" onkeydown="if(event.key==='Enter'||event.key===' '){sortInventory('totalValue', 'number');event.preventDefault();}" aria-label="Sort by Total Value">Total Value ⇅</th>
+                            <th class="sortable" role="button" tabindex="0" onclick="sortInventory('reorderLevel', 'number')" onkeydown="if(event.key==='Enter'||event.key===' '){sortInventory('reorderLevel', 'number');event.preventDefault();}" aria-label="Sort by Reorder Level">Reorder Level ⇅</th>
+                            <th class="sortable" role="button" tabindex="0" onclick="sortInventory('supplier', 'string')" onkeydown="if(event.key==='Enter'||event.key===' '){sortInventory('supplier', 'string');event.preventDefault();}" aria-label="Sort by Supplier">Supplier ⇅</th>
+                            <th class="sortable" role="button" tabindex="0" onclick="sortInventory('lastRestock', 'string')" onkeydown="if(event.key==='Enter'||event.key===' '){sortInventory('lastRestock', 'string');event.preventDefault();}" aria-label="Sort by Last Restock">Last Restock ⇅</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inventoryTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Returned Items Inventory Tab -->
+        <div id="returnedItems" class="tab-content">
+            <div class="tab-header">
+                <h2>Returned Items Inventory</h2>
+            </div>
+            <div class="search-bar">
+                <input type="text" id="returnedItemsSearch" placeholder="Search returned items..." onkeyup="filterReturnedItems()">
+            </div>
+            <div class="table-container">
+                <table id="returnedItemsTable">
+                    <thead>
+                        <tr>
+                            <th>SKU</th>
+                            <th>Product Name</th>
+                            <th>Category</th>
+                            <th>Quantity</th>
+                            <th>Original Price</th>
+                            <th>Condition</th>
+                            <th>Return Date</th>
+                            <th>Customer</th>
+                            <th>Reason</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="returnedItemsTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Sales Tab -->
+        <div id="sales" class="tab-content">
+            <div class="tab-header">
+                <h2>Today's Sales</h2>
+                <button class="btn-primary" onclick="showNewSaleModal()">+ New Sale</button>
+            </div>
+            <div class="search-bar">
+                <input type="text" id="salesSearch" placeholder="Search today's sales..." onkeyup="filterSales()">
+            </div>
+            <div class="table-container">
+                <table id="salesTable">
+                    <thead>
+                        <tr>
+                            <th class="sortable" onclick="sortSales('invoiceNumber', 'string')">Sales Receipt # ⇅</th>
+                            <th class="sortable" onclick="sortSales('date', 'string')">Date ⇅</th>
+                            <th class="sortable" onclick="sortSales('customerName', 'string')">Customer ⇅</th>
+                            <th class="sortable" onclick="sortSales('sellerName', 'string')">Staff ⇅</th>
+                            <th>Items</th>
+                            <th class="sortable" onclick="sortSales('total', 'number')">Total Amount ⇅</th>
+                            <th class="sortable" onclick="sortSales('totalDiscount', 'number')">Discount ⇅</th>
+                            <th class="sortable" onclick="sortSales('profit', 'number')">Profit ⇅</th>
+                            <th class="sortable" onclick="sortSales('paymentMethod', 'string')">Payment Method ⇅</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="salesTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Returns Tab -->
+        <div id="returns" class="tab-content">
+            <div class="tab-header">
+                <h2>Returns Management</h2>
+                <button class="btn-primary" onclick="showNewReturnModal()">+ New Return</button>
+            </div>
+            <div class="search-bar">
+                <input type="text" id="returnsSearch" placeholder="Search returns..." onkeyup="filterReturns()">
+            </div>
+            <div class="table-container">
+                <table id="returnsTable">
+                    <thead>
+                        <tr>
+                            <th>Return ID</th>
+                            <th>Sales Receipt #</th>
+                            <th>Date</th>
+                            <th>Customer</th>
+                            <th>Refund Amount</th>
+                            <th>Reason</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="returnsTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Customers Tab -->
+        <div id="customers" class="tab-content">
+            <div class="tab-header">
+                <h2>Customer Database</h2>
+                <button class="btn-primary" onclick="showAddCustomerModal()">+ Add Customer</button>
+            </div>
+            <div class="search-bar">
+                <input type="text" id="customersSearch" placeholder="Search customers..." onkeyup="filterCustomers()">
+            </div>
+            <div class="table-container">
+                <table id="customersTable">
+                    <thead>
+                        <tr>
+                            <th>Customer ID</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Lifetime Value (UGX)</th>
+                            <th>Last Purchase</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="customersTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Suppliers Tab -->
+        <div id="suppliers" class="tab-content">
+            <div class="tab-header">
+                <h2>Supplier Management</h2>
+                <button class="btn-primary" onclick="showAddSupplierModal()">+ Add Supplier</button>
+            </div>
+            <div class="search-bar">
+                <input type="text" id="suppliersSearch" placeholder="Search suppliers..." onkeyup="filterSuppliers()">
+            </div>
+            <div class="table-container">
+                <table id="suppliersTable">
+                    <thead>
+                        <tr>
+                            <th>Supplier ID</th>
+                            <th>Company Name</th>
+                            <th>Contact Person</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Payment Terms</th>
+                            <th>Categories</th>
+                            <th>Products Supplied</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="suppliersTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Users Tab -->
+        <div id="users" class="tab-content">
+            <div class="tab-header">
+                <h2>User Management</h2>
+                <button class="btn-primary" onclick="showAddUserModal()">+ Add User</button>
+            </div>
+            <div class="search-bar">
+                <input type="text" id="usersSearch" placeholder="Search users..." onkeyup="filterUsers()">
+            </div>
+            <div class="table-container">
+                <table id="usersTable">
+                    <thead>
+                        <tr>
+                            <th>User ID</th>
+                            <th>Username</th>
+                            <th>Full Name</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+        </div> <!-- End main-content -->
+    </div> <!-- End mainApp -->
+
+    <!-- Modals -->
+    <div id="modalOverlay" class="modal-overlay" onclick="closeModal()"></div>
+
+    <!-- Add/Edit Inventory Modal -->
+    <div id="inventoryModal" class="modal">
+        <div class="modal-content">
+            <h2 id="inventoryModalTitle">Add New Inventory Item</h2>
+            <form id="inventoryForm" onsubmit="saveInventoryItem(event)">
+                <input type="hidden" id="editInventoryId">
+                <div class="form-group">
+                    <label>SKU:</label>
+                    <input type="text" id="itemSku" required>
+                </div>
+                <div class="form-group">
+                    <label>Product Name:</label>
+                    <input type="text" id="itemName" required>
+                </div>
+                <div class="form-group">
+                    <label>Category:</label>
+                    <input type="text" id="itemCategory" required>
+                </div>
+                <div class="form-group">
+                    <label>Quantity:</label>
+                    <input type="number" id="itemQuantity" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label>Cost Price (UGX):</label>
+                    <input type="number" id="itemCostPrice" step="1" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label>Selling Price (UGX):</label>
+                    <input type="number" id="itemPrice" step="1" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label>Reorder Level:</label>
+                    <input type="number" id="itemReorderLevel" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label>Supplier:</label>
+                    <select id="itemSupplier" required></select>
+                </div>
+                <div class="modal-actions">
+                    <button type="submit" class="btn-primary">Save</button>
+                    <button type="button" class="btn-secondary" onclick="closeModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- New Sale Modal -->
+    <div id="saleModal" class="modal">
+        <div class="modal-content large">
+            <h2>New Sale</h2>
+            <form id="saleForm" onsubmit="saveSale(event)">
+                <div class="form-row">
+                    <div class="form-group" style="position: relative;">
+                        <label>Customer Name (Optional):</label>
+                        <input type="text" id="manualCustomerName" placeholder="Enter customer name or leave blank" autocomplete="off" oninput="showCustomerSuggestions()">
+                        <div id="customerSuggestions" class="autocomplete-suggestions"></div>
+                        <input type="hidden" id="selectedCustomerId" value="">
+                    </div>
+                    <div class="form-group">
+                        <label>Payment Method:</label>
+                        <select id="salePaymentMethod" required>
+                            <option value="Cash">Cash</option>
+                            <option value="Mobile Money">Mobile Money</option>
+                            <option value="Credit Card">Credit Card</option>
+                            <option value="Bank Transfer">Bank Transfer</option>
+                        </select>
+                    </div>
+                </div>
+                <h3>Items</h3>
+                <div id="saleItems">
+                    <div class="sale-item">
+                        <select class="item-select" onchange="updateSaleItemPrice(0)" required></select>
+                        <input type="number" class="item-quantity" placeholder="Qty" min="1" value="1" onchange="calculateSaleTotal()" required>
+                        <input type="number" class="item-price" placeholder="Price" step="0.01" min="0" onchange="calculateSaleTotal()" data-system-price="0">
+                        <span class="item-subtotal">$0.00</span>
+                        <button type="button" onclick="removeSaleItem(0)" class="btn-remove">×</button>
+                    </div>
+                </div>
+                <button type="button" class="btn-secondary" onclick="addSaleItem()">+ Add Item</button>
+                <div class="sale-total">
+                    <h3>Total: UGX <span id="saleTotal">0</span></h3>
+                </div>
+                <div class="modal-actions">
+                    <button type="submit" class="btn-primary">Complete Sale</button>
+                    <button type="button" class="btn-secondary" onclick="closeModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- New Return Modal -->
+    <div id="returnModal" class="modal">
+        <div class="modal-content">
+            <h2>New Return</h2>
+            <form id="returnForm" onsubmit="saveReturn(event)">
+                <div class="form-group">
+                    <label>Original Invoice:</label>
+                    <select id="returnInvoice" onchange="loadInvoiceDetails()" required></select>
+                </div>
+                <div id="invoiceDetails" style="display:none;">
+                    <div class="info-box">
+                        <p><strong>Customer:</strong> <span id="returnCustomerName"></span></p>
+                        <p><strong>Date:</strong> <span id="returnInvoiceDate"></span></p>
+                        <p><strong>Total:</strong> UGX <span id="returnInvoiceTotal"></span></p>
+                    </div>
+                    <div class="form-group">
+                        <label><strong>Select Items to Return:</strong></label>
+                        <div id="returnItemsList" style="max-height: 200px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; border-radius: 5px; background: #f9f9f9;"></div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Refund Amount (UGX):</label>
+                    <input type="number" id="returnAmount" step="1" min="0" required readonly>
+                </div>
+                <div class="form-group">
+                    <label>Return Reason:</label>
+                    <textarea id="returnReason" rows="3" required></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button type="submit" class="btn-primary">Submit Return</button>
+                    <button type="button" class="btn-secondary" onclick="closeModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Customer Modal -->
+    <div id="customerModal" class="modal">
+        <div class="modal-content">
+            <h2 id="customerModalTitle">Add New Customer</h2>
+            <form id="customerForm" onsubmit="saveCustomer(event)">
+                <input type="hidden" id="editCustomerId">
+                <div class="form-group">
+                    <label>Full Name:</label>
+                    <input type="text" id="customerName" required>
+                </div>
+                <div class="form-group">
+                    <label>Email:</label>
+                    <input type="email" id="customerEmail">
+                </div>
+                <div class="form-group">
+                    <label>Phone:</label>
+                    <input type="tel" id="customerPhone">
+                </div>
+                <div class="form-group">
+                    <label>Address:</label>
+                    <textarea id="customerAddress" rows="2"></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button type="submit" class="btn-primary">Save</button>
+                    <button type="button" class="btn-secondary" onclick="closeModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Supplier Modal -->
+    <div id="supplierModal" class="modal">
+        <div class="modal-content">
+            <h2 id="supplierModalTitle">Add New Supplier</h2>
+            <form id="supplierForm" onsubmit="saveSupplier(event)">
+                <input type="hidden" id="editSupplierId">
+                <div class="form-group">
+                    <label>Company Name:</label>
+                    <input type="text" id="supplierCompany" required>
+                </div>
+                <div class="form-group">
+                    <label>Contact Person:</label>
+                    <input type="text" id="supplierContact" required>
+                </div>
+                <div class="form-group">
+                    <label>Email:</label>
+                    <input type="email" id="supplierEmail" required>
+                </div>
+                <div class="form-group">
+                    <label>Phone:</label>
+                    <input type="tel" id="supplierPhone" required>
+                </div>
+                <div class="form-group">
+                    <label>Payment Terms:</label>
+                    <select id="supplierTerms" required>
+                        <option value="Net 30">Net 30</option>
+                        <option value="Net 60">Net 60</option>
+                        <option value="Cash on Delivery">Cash on Delivery</option>
+                        <option value="Prepaid">Prepaid</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Categories:</label>
+                    <input type="text" id="supplierCategories" placeholder="e.g., Electronics, Hardware" required>
+                </div>
+                <div class="form-group">
+                    <label>Products Supplied:</label>
+                    <textarea id="supplierProducts" rows="2"></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button type="submit" class="btn-primary">Save</button>
+                    <button type="button" class="btn-secondary" onclick="closeModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Reports Modal -->
+    <div id="reportsModal" class="modal">
+        <div class="modal-content">
+            <h2>Generate Reports</h2>
+            <form id="reportsForm" onsubmit="generateReport(event)">
+                <div class="form-group">
+                    <label>Report Type:</label>
+                    <select id="reportType" required>
+                        <option value="sales">Sales Report</option>
+                        <option value="inventory">Inventory Report</option>
+                        <option value="customers">Customer Report</option>
+                        <option value="returns">Returns Report</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Date Range:</label>
+                    <select id="dateRange" onchange="toggleCustomDates()">
+                        <option value="today">Today</option>
+                        <option value="week">This Week</option>
+                        <option value="month">This Month</option>
+                        <option value="year">This Year</option>
+                        <option value="custom">Custom Range</option>
+                    </select>
+                </div>
+                <div id="customDateRange" style="display: none;">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>From:</label>
+                            <input type="date" id="dateFrom">
+                        </div>
+                        <div class="form-group">
+                            <label>To:</label>
+                            <input type="date" id="dateTo">
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Export Format:</label>
+                    <select id="exportFormat" required>
+                        <option value="pdf">PDF</option>
+                        <option value="excel">Excel (CSV)</option>
+                        <option value="print">Print</option>
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button type="submit" class="btn-primary">Generate Report</button>
+                    <button type="button" class="btn-secondary" onclick="closeModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- User Modal -->
+    <div id="userModal" class="modal">
+        <div class="modal-content">
+            <h2 id="userModalTitle">Add New User</h2>
+            <form id="userForm" onsubmit="saveUser(event)">
+                <input type="hidden" id="editUserId">
+                <div class="form-group">
+                    <label>Username:</label>
+                    <input type="text" id="userUsername" required>
+                </div>
+                <div class="form-group">
+                    <label>Password:</label>
+                    <input type="password" id="userPassword" required>
+                </div>
+                <div class="form-group">
+                    <label>Full Name:</label>
+                    <input type="text" id="userName" required>
+                </div>
+                <div class="form-group">
+                    <label>Email:</label>
+                    <input type="email" id="userEmail" required>
+                </div>
+                <div class="form-group">
+                    <label>Role:</label>
+                    <select id="userRole" required>
+                        <option value="user">User</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button type="submit" class="btn-primary">Save</button>
+                    <button type="button" class="btn-secondary" onclick="closeModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

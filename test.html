@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API Test</title>
+</head>
+<body>
+    <h1>Login Test</h1>
+    <input type="text" id="user" value="admin" placeholder="Username">
+    <input type="password" id="pass" value="admin123" placeholder="Password">
+    <button onclick="testLogin()">Test Login</button>
+    <div id="result"></div>
+
+    <script>
+        async function testLogin() {
+            const username = document.getElementById('user').value;
+            const password = document.getElementById('pass').value;
+            const resultDiv = document.getElementById('result');
+
+            try {
+                console.log('Attempting login...');
+                const response = await fetch('http://localhost:3000/api/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+
+                console.log('Response received:', response);
+                const data = await response.json();
+                console.log('Data:', data);
+
+                resultDiv.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+            } catch (error) {
+                console.error('Error:', error);
+                resultDiv.innerHTML = '<pre>Error: ' + error.message + '</pre>';
+            }
+        }
+    </script>
+</body>
+</html>
