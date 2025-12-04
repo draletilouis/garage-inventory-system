@@ -6,7 +6,7 @@ A comprehensive inventory management system for spare parts companies, built wit
 
 ## Production Deployment Screenshot
 
-![Dashboard Overview](image.png)
+![Dashboard Overview](screenshot.png)
 *Live production dashboard showing the HR Family Spare Parts inventory system interface - Currently Deployed*
 
 ## Features
