@@ -57,7 +57,7 @@
       "/node_modules/"
     ],
     "testMatch": [
-      "**/__tests__/**/*.test.js"
+      "**/tests/__tests__/**/*.test.js"
     ],
     "collectCoverageFrom": [
       "server.js",
