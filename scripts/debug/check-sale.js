@@ -1,5 +1,5 @@
 require('dotenv').config();
-const DatabaseWrapper = require('./database');
+const DatabaseWrapper = require('../../src/config/database');
 
 async function checkSale() {
     const db = new DatabaseWrapper({ type: 'postgres' });

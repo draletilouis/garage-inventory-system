@@ -4,7 +4,7 @@
  */
 
 require('dotenv').config();
-const DatabaseWrapper = require('./database');
+const DatabaseWrapper = require('../../src/config/database');
 const bcrypt = require('bcrypt');
 
 const BCRYPT_ROUNDS = Number.parseInt(process.env.BCRYPT_ROUNDS, 10) || 10;

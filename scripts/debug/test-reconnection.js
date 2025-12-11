@@ -1,5 +1,5 @@
 require('dotenv').config();
-const DatabaseWrapper = require('./database');
+const DatabaseWrapper = require('../../src/config/database');
 
 /**
  * Test script to verify auto-reconnection and retry logic

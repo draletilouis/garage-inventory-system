@@ -1,5 +1,5 @@
 require('dotenv').config();
-const DatabaseWrapper = require('./database');
+const DatabaseWrapper = require('../../src/config/database');
 
 /**
  * Verify database setup

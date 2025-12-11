@@ -2,22 +2,22 @@
   "name": "inventory-system",
   "version": "1.0.0",
   "description": "Inventory Management System with Node.js backend",
-  "main": "server.js",
+  "main": "src/server.js",
   "engines": {
     "node": "20.x",
     "npm": ">=9.0.0"
   },
   "scripts": {
-    "start": "cross-env NODE_ENV=production node server.js",
-    "dev": "nodemon server.js",
+    "start": "cross-env NODE_ENV=production node src/server.js",
+    "dev": "nodemon src/server.js",
     "test": "cross-env NODE_ENV=test jest --coverage --verbose",
     "test:watch": "cross-env NODE_ENV=test jest --watch",
     "migrate": "node -e \"console.log('Database will be auto-initialized on first run')\"",
-    "init-postgres": "node init-postgres.js",
-    "clear-database": "node clear-database.js",
-    "clear-database-auto": "node clear-database-auto.js",
-    "create-demo-users": "node create-demo-users.js",
-    "create-production-users": "node create-production-users.js",
+    "init-postgres": "node scripts/setup/init-postgres.js",
+    "clear-database": "node scripts/maintenance/clear-database.js",
+    "clear-database-auto": "node scripts/maintenance/clear-database-auto.js",
+    "create-demo-users": "node scripts/setup/create-demo-users.js",
+    "create-production-users": "node scripts/setup/create-production-users.js",
     "backup": "node scripts/backup.js",
     "generate-secret": "node -e \"console.log('SESSION_SECRET=' + require('crypto').randomBytes(32).toString('hex'))\""
   },
@@ -60,9 +60,9 @@
       "**/tests/__tests__/**/*.test.js"
     ],
     "collectCoverageFrom": [
-      "server.js",
-      "database.js",
-      "init-postgres.js"
+      "src/server.js",
+      "src/config/database.js",
+      "scripts/setup/init-postgres.js"
     ]
   }
 }

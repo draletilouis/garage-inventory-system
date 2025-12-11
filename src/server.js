@@ -2,7 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const DatabaseWrapper = require('./database');
+const DatabaseWrapper = require('./config/database');
 const path = require('path');
 const bcrypt = require('bcrypt');
 const rateLimit = require('express-rate-limit');
@@ -11,7 +11,7 @@ const morgan = require('morgan');
 const session = require('express-session');
 const pgSession = require('connect-pg-simple')(session);
 const { body, validationResult } = require('express-validator');
-const initPostgres = require('./init-postgres');
+const initPostgres = require('../scripts/setup/init-postgres');
 
 const app = express();
 app.set("trust proxy", 1);
@@ -147,7 +147,7 @@ app.use(session({
 }));
 
 app.use(bodyParser.json());
-app.use(express.static(__dirname));
+app.use(express.static(path.join(__dirname, '../public')));
 
 // Initialize PostgreSQL database
 const db = new DatabaseWrapper({ type: 'postgres' });

@@ -1,22 +1,30 @@
 /**
- * Clear Database Script (Non-Interactive Version)
- * Automatically clears all data and recreates production users
+ * Clear Database Script
+ * Safely clears all data from the production database and reinitializes it
  *
- *  WARNING: This will DELETE ALL DATA from the database!
- * Use with extreme caution in production environments.
- *
- * Usage: node clear-database-auto.js
+ * ⚠️ WARNING: This will DELETE ALL DATA from the database!
+ * Use with caution in production environments.
  */
 
 require('dotenv').config();
-const DatabaseWrapper = require('./database');
+const DatabaseWrapper = require('../../src/config/database');
+const readline = require('readline');
 
-async function clearDatabaseAuto() {
+const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+});
+
+function question(query) {
+    return new Promise(resolve => rl.question(query, resolve));
+}
+
+async function clearDatabase() {
     const db = new DatabaseWrapper({ type: 'postgres' });
 
     try {
         console.log('╔══════════════════════════════════════════════════════════╗');
-        console.log('║     DATABASE CLEAR AND REINITIALIZE (AUTOMATIC)         ║');
+        console.log('║           DATABASE CLEAR AND REINITIALIZE                ║');
         console.log('╚══════════════════════════════════════════════════════════╝\n');
 
         // Check connection
@@ -30,10 +38,20 @@ async function clearDatabaseAuto() {
         const environment = process.env.NODE_ENV || 'development';
         console.log(`📋 Current Environment: ${environment}\n`);
 
-        console.log('⚠️  WARNING: Clearing database in 3 seconds...\n');
-        await new Promise(resolve => setTimeout(resolve, 3000));
+        // Safety confirmation
+        console.log('⚠️  WARNING: This will DELETE ALL DATA from the database!');
+        console.log('   This action cannot be undone.\n');
 
-        console.log('🗑️  Clearing database...\n');
+        const confirmation = await question('Are you sure you want to continue? (type "YES" to confirm): ');
+
+        if (confirmation !== 'YES') {
+            console.log('\n❌ Operation cancelled. No changes were made.');
+            rl.close();
+            await db.close();
+            return;
+        }
+
+        console.log('\n🗑️  Clearing database...\n');
 
         // Drop all tables in correct order (respecting foreign key constraints)
         const tables = [
@@ -218,17 +236,35 @@ async function clearDatabaseAuto() {
         console.log('║              DATABASE CLEARED & REINITIALIZED             ║');
         console.log('╚══════════════════════════════════════════════════════════╝\n');
 
-        // Automatically create production users
-        console.log('🔧 Creating production users...\n');
+        console.log('✅ Database has been cleared and reinitialized successfully!\n');
 
-        await db.close(); // Close current connection
-        const createProductionUsers = require('./create-production-users');
-        await createProductionUsers(); // This will create its own connection
+        // Ask if user wants to recreate production users
+        const recreateUsers = await question('Do you want to recreate production users now? (yes/no): ');
 
-        console.log('\n✅ Database cleared and production users created successfully!\n');
+        if (recreateUsers.toLowerCase() === 'yes' || recreateUsers.toLowerCase() === 'y') {
+            console.log('\n🔧 Creating production users...\n');
+
+            // Import and run the production user creation
+            const createProductionUsers = require('./create-production-users');
+            await db.close(); // Close current connection
+            await createProductionUsers(); // This will create its own connection
+
+            console.log('\n✅ Production users created successfully!\n');
+        } else {
+            console.log('📋 Next steps:\n');
+            console.log('1. Create users:');
+            console.log('   For development: npm run create-demo-users');
+            console.log('   For production:  npm run create-production-users\n');
+            console.log('2. (Optional) Add sample inventory and customers\n');
+            console.log('3. Start the application: npm start\n');
+
+            rl.close();
+            await db.close();
+        }
 
     } catch (error) {
         console.error('\n❌ Error clearing database:', error);
+        rl.close();
         await db.close();
         process.exit(1);
     }
@@ -236,7 +272,7 @@ async function clearDatabaseAuto() {
 
 // Run if called directly
 if (require.main === module) {
-    clearDatabaseAuto();
+    clearDatabase();
 }
 
-module.exports = clearDatabaseAuto;
+module.exports = clearDatabase;
