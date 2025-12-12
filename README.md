@@ -1,17 +1,10 @@
 # HR Family Spare Parts - Inventory Management System
 
 <div align="center">
+**A comprehensive, production-ready inventory management system built with Node.js, Express, and PostgreSQL**
 
 ![Production Screenshot](screenshot.png)
 
-**A comprehensive, production-ready inventory management system built with Node.js, Express, and PostgreSQL**
-
-[![Node.js Version](https://img.shields.io/badge/node-%3E%3D20.0.0-brightgreen)](https://nodejs.org/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-%3E%3D12.0-blue)](https://www.postgresql.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Production Status](https://img.shields.io/badge/Status-Production-success)](https://github.com/draletilouis/garage-inventory-system)
-
-[Features](#features) • [Quick Start](#quick-start) • [Documentation](#documentation) • [Deployment](#deployment) • [API Reference](#api-reference)
 
 </div>
 
