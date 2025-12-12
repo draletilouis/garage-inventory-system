@@ -1,7 +1,9 @@
 # HR Family Spare Parts - Inventory Management System
 
 <div align="center">
+  
 **A comprehensive, production-ready inventory management system built with Node.js, Express, and PostgreSQL**
+
 
 ![Production Screenshot](screenshot.png)
 
